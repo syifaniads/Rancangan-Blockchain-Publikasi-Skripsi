@@ -239,6 +239,11 @@ geth \
   --http.port 8545 \
   --http.api eth,net,web3,admin,clique,miner,personal \
   --http.corsdomain "*" \
+  --mine \
+  --miner.etherbase <ADDR_PEER> \
+  --unlock <ADDR_PEER> \
+  --password ~/blockchain/password.txt \
+  --allow-insecure-unlock \
   --verbosity 3 \
   console
 ```
