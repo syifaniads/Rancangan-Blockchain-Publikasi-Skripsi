@@ -232,17 +232,14 @@ geth \
   --datadir ~/blockchain/geth \
   --networkid 20260315 \
   --port 30303 \
-  --bootnodes <ENODE_VM1> \
+  --nat extip:<IP_PEER> \
+  --bootnodes "enode://bcd9fa2aeb705101bc15d6ecca3363cf8e555f742203e612f3f02ac1c13749a9925c71116b8a95e03a064affd1a0a61979b38d735d357cc38656bb6f6a0012da@10.34.100.182:30303" \
   --http \
   --http.addr 0.0.0.0 \
   --http.port 8545 \
-  --http.api eth,net,web3,clique,personal \
-  --http.corsdomain '*' \
-  --unlock <ADDR_KX> \
-  --password ~/blockchain/password.txt \
-  --mine \
-  --miner.etherbase <ADDR_KX> \
-  --allow-insecure-unlock \
+  --http.api eth,net,web3,admin,clique,miner,personal \
+  --http.corsdomain "*" \
+  --verbosity 3 \
   console
 ```
 
