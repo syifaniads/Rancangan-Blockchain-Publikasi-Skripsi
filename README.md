@@ -1,304 +1,161 @@
-# BLOCKCHAIN PRIVATE NETWORK
+# Private Blockchain for Academic Publication Registry
 
-## Setup Guide — genesis.json & Node Configuration
+[![Blockchain](https://img.shields.io/badge/network-private%20Ethereum-3C3C3D)](./ARCHITECTURE.md)
+[![Consensus](https://img.shields.io/badge/consensus-Clique%20PoA-6A5ACD)](./NETWORK.md)
+[![Storage](https://img.shields.io/badge/storage-IPFS-65C2CB)](./THESIS_PIPELINE.md)
+[![Distributed Systems](https://img.shields.io/badge/focus-distributed%20systems-2563EB)](./PORTFOLIO.md)
 
-### Kelas B · SKT · Clique PoA · Geth v1.13.15
+A collaborative distributed-systems project that builds a **permissioned Ethereum-compatible network** for registering academic-publication metadata across multiple validator nodes.
 
-Dokumen ini berisi panduan lengkap step-by-step untuk setup genesis block, instalasi Geth, konfigurasi node, dan menjalankan jaringan blockchain private consortium untuk proyek skripsi plagiasi.
+The coursework combines **Geth**, **Clique Proof-of-Authority**, multi-VM peer networking, a shared genesis configuration, backend API integration, repository crawling, **IPFS**, and blockchain transaction verification.
 
-## 1. Overview Jaringan
+> **Portfolio note:** this repository is a curated public presentation of an academic team project. Infrastructure addresses, passwords, bootnode identifiers, and other course-lab details are intentionally removed from the recruiter-facing documentation.
 
-Jaringan ini menggunakan Clique Proof-of-Authority (PoA) dengan 4 validator node yang merepresentasikan 4 universitas berbeda. Setiap VM bertindak sebagai full node sekaligus validator.
+## Why this project is interesting
 
-| Node      | Kelompok     | Universitas      | IP Address    | Port P2P | Port RPC |
-| --------- | ------------ | ---------------- | ------------- | -------- | -------- |
-| VM-1 (K1) | K1 – Syifani | Univ. Diponegoro | 10.34.100.182 | 30303    | 8545     |
-| VM-2 (K2) | K2 – Rafly   | IPB University   | 10.34.100.183 | 30303    | 8545     |
-| VM-3 (K3) | K3 – Asyraf  | Univ. Brawijaya  | 10.34.100.184 | 30303    | 8545     |
-| VM-4 (K4) | K4 – Wahyu   | Univ. Hasanuddin | 10.34.100.185 | 30303    | 8545     |
+The project is more than a basic smart-contract demo. It requires several distributed-systems layers to work together:
 
-⚠ Semua 4 node adalah validator. Clique PoA membutuhkan majority (>50%) validator aktif untuk memproduksi blok — minimal 3 dari 4 node harus online.
+- multiple validator/full nodes;
+- deterministic shared genesis state;
+- P2P peer discovery / bootstrapping;
+- authority-based block production;
+- node quorum / signer coordination;
+- off-chain document storage through IPFS;
+- backend ingestion and transaction submission;
+- post-write verification through chain state / API retrieval.
 
-## 2. Instalasi Geth (Semua VM)
+## Architecture
 
-Jalankan perintah berikut di SEMUA VM (VM-1, VM-2, VM-3, VM-4) sebelum melakukan konfigurasi apapun.
+```mermaid
+flowchart TB
+    R[University / Academic Repository] --> C[Metadata crawler]
+    C --> API[Backend API]
+    API --> IPFS[(IPFS\nDocument / JSON object)]
+    API --> SC[Registry submission]
 
-### STEP 2.1    Download & Install Geth v1.13.15
+    subgraph NET[Private Clique PoA Network]
+      V1[Validator A]
+      V2[Validator B]
+      V3[Validator C]
+      V4[Validator D]
+      V1 --- V2
+      V1 --- V3
+      V1 --- V4
+      V2 --- V3
+      V2 --- V4
+      V3 --- V4
+    end
 
-```bash
-# Download binary Geth v1.13.15
-wget https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.13.15-c5ba367e.tar.gz
-
-# Ekstrak archive
-tar -xvf geth-linux-amd64-1.13.15-c5ba367e.tar.gz
-
-# Pindahkan ke system PATH
-sudo mv geth-linux-amd64-1.13.15-c5ba367e/geth /usr/local/bin/
-
-# Tambahkan ke PATH (jika belum ada)
-echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bashrc
-source ~/.bashrc
-
-# Verifikasi — harus muncul: 1.13.15
-geth version
+    SC --> V1
+    V1 --> Q[Confirmed chain state]
+    Q --> API
+    IPFS --> API
+    API --> OUT[Verified publication record]
 ```
 
-⚠ Pastikan SEMUA VM menggunakan versi yang sama persis (v1.13.15). Perbedaan versi dapat menyebabkan gagal peering.
+See [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## 3. Buat Akun Validator (Semua VM)
+## Network design
 
-Setiap VM harus membuat akun Ethereum sendiri. Akun ini akan menjadi identity validator node di jaringan.
+The documented lab uses **Geth v1.13.15** and Clique PoA with a shared `genesis.json`.
 
-### STEP 3.1    Buat Struktur Direktori
+The original configuration defines:
 
-```bash
-# Buat direktori kerja
-mkdir -p ~/blockchain/geth
-cd ~/blockchain
+```text
+chainId      : 20260315
+consensus    : Clique PoA
+block period : 5 seconds
+clique epoch : 30000
+gas limit    : 8,000,000
+validators   : 4 in the retained genesis artifact
 ```
 
-### STEP 3.2    Generate Akun Validator
+Every participating node must initialize from the **same genesis file**. A genesis mismatch creates a different chain and prevents correct peering.
 
-```bash
-# Buat akun baru — akan diminta membuat password
-geth account new --datadir ./geth
+The retained [`genesis.json`](./genesis.json) contains public validator addresses from the academic lab. A placeholder-based example for reuse is available at [`genesis.example.json`](./genesis.example.json).
+
+See [NETWORK.md](./NETWORK.md).
+
+## Validation performed
+
+The course report verifies the network using checks such as:
+
+```text
+peer count          -> expected validator connectivity
+clique signers      -> expected authority set
+block number        -> continues increasing
+node logs           -> no blocking consensus/peering error
 ```
 
-# Output contoh:
+The important engineering point is that **block creation, validator identity, and peer connectivity must all agree on the same chain configuration**.
 
-# Your new key was generated
+## Academic-publication pipeline
 
-# Public address of the key: 0xAbCd1234...
+The project extends the network with an application workflow:
 
-# Path of the secret key file: ./geth/keystore/UTC--...
-
-⚠ Catat address yang muncul (0x...) dan simpan password dengan aman. Address ini akan dikirim ke genesis owner (VM-1).
-✓ Setiap VM mengirimkan address mereka ke K1 (Syifani/VM-1) untuk dimasukkan ke genesis.json
-
-### STEP 3.3    Backup Keystore (WAJIB)
-
-```bash
-# Lokasi file keystore
-ls ~/blockchain/geth/keystore/
-
-# Backup ke lokasi aman
-cp -r ~/blockchain/geth/keystore/ ~/keystore_backup/
+```mermaid
+flowchart LR
+    SRC[Academic repository] --> CR[Crawler]
+    CR --> JSON[Publication metadata]
+    JSON --> IPFS[(IPFS CID)]
+    JSON --> API[Backend API]
+    IPFS --> API
+    API --> TX[Blockchain transaction]
+    TX --> CHAIN[(Private chain)]
+    CHAIN --> VERIFY[Query / verification]
 ```
 
-⛔ JANGAN HAPUS KEYSTORE — File keystore adalah identitas validator. Jika terhapus, address hangus dan genesis harus dibuat ulang dari awal.
+The final report records an end-to-end flow that:
 
-## 4. Konfigurasi genesis.json (VM-1 / Genesis Owner)
+1. crawls thesis/publication metadata;
+2. produces a structured JSON artifact;
+3. uploads the artifact to IPFS;
+4. submits publication data through the backend API;
+5. receives transaction hashes;
+6. verifies that the block height increases;
+7. retrieves the stored record through an API backed by blockchain state.
 
-Bagian ini HANYA dilakukan oleh VM-1 setelah menerima address dari semua VM lain.
+See [THESIS_PIPELINE.md](./THESIS_PIPELINE.md).
 
-### STEP 4.1    Kumpulkan 4 Address Validator
+## Why IPFS + blockchain
 
-Sebelum membuat genesis.json, pastikan sudah menerima address dari semua node:
+The project separates two responsibilities:
 
-• VM-1 (K1): address milik sendiri dari Step 3.2
-• VM-2 (K2): address dari Rafly
-• VM-3 (K3): address dari Asyraf
-• VM-4 (K4): address dari Wahyu
+- **IPFS / object content** - store larger content or content-addressed artifacts off-chain;
+- **blockchain state** - store integrity/reference metadata and an immutable transaction history.
 
-### STEP 4.2    Format extradata
+This avoids placing full documents directly into blockchain state while still giving the application a verifiable reference path.
 
-extradata adalah field kritis di Clique PoA yang mendefinisikan siapa saja validatornya. Format HARUS tepat:
+## Repository navigation
 
-```
-# Struktur extradata:
-0x
-  + 64 hex chars  (32 bytes zeros — prefix wajib)
-  + 40 hex chars  (address K1, tanpa 0x prefix)
-  + 40 hex chars  (address K2, tanpa 0x prefix)
-  + 40 hex chars  (address K3, tanpa 0x prefix)
-  + 40 hex chars  (address K4, tanpa 0x prefix)
-  + 130 hex chars (65 bytes zeros — signature placeholder)
+| Area | Document |
+|---|---|
+| System architecture | [ARCHITECTURE.md](./ARCHITECTURE.md) |
+| Validator network / Clique PoA | [NETWORK.md](./NETWORK.md) |
+| Thesis/publication ingestion pipeline | [THESIS_PIPELINE.md](./THESIS_PIPELINE.md) |
+| Security considerations | [SECURITY.md](./SECURITY.md) |
+| Limitations / non-claims | [LIMITATIONS.md](./LIMITATIONS.md) |
+| Source / report evidence | [SOURCE_EVIDENCE.md](./SOURCE_EVIDENCE.md) |
+| Team attribution | [TEAM_ATTRIBUTION.md](./TEAM_ATTRIBUTION.md) |
+| Recruiter / CV summary | [PORTFOLIO.md](./PORTFOLIO.md) |
+| Reusable genesis template | [genesis.example.json](./genesis.example.json) |
 
-# Total panjang string: 2 + 64 + (40x4) + 130 = 356 karakter
-```
+## Security note
 
-⚠ Hapus 0x dari setiap address saat memasukkan ke extradata. Jangan beri spasi atau koma antar address.
+The original coursework used a controlled lab and included commands convenient for experimentation. They should **not** be copied directly into a production Ethereum deployment.
 
-### STEP 4.3    genesis.json Lengkap
+A production design should avoid practices such as exposing broad RPC modules, permissive CORS, insecure account unlocking, plaintext password files, or unrestricted network interfaces.
 
-```json
-{
-  "config": {
-    "chainId": 20260315,
-    "homesteadBlock": 0,
-    "eip150Block": 0,
-    "eip155Block": 0,
-    "eip158Block": 0,
-    "byzantiumBlock": 0,
-    "constantinopleBlock": 0,
-    "petersburgBlock": 0,
-    "istanbulBlock": 0,
-    "clique": {
-      "period": 5,
-      "epoch": 30000
-    }
-  },
-  "difficulty": "1",
-  "gasLimit": "8000000",
-  "extradata": "0x[64_zeros][ADDR_K1_no_0x][ADDR_K2_no_0x][ADDR_K3_no_0x][ADDR_K4_no_0x][130_zeros]",
-  "alloc": {
-    "addr_k1_lowercase_no_0x": { "balance": "1000000000000000000000" },
-    "addr_k2_lowercase_no_0x": { "balance": "1000000000000000000000" },
-    "addr_k3_lowercase_no_0x": { "balance": "1000000000000000000000" },
-    "addr_k4_lowercase_no_0x": { "balance": "1000000000000000000000" }
-  }
-}
-```
+See [SECURITY.md](./SECURITY.md).
 
-⚠ Balance 1000000000000000000000 = 1000 ETH dalam satuan wei. Ini hanya berlaku di jaringan private ini.
+## Attribution
 
-### STEP 4.4    Verifikasi extradata (Penting!)
+This project was completed collaboratively by a six-person student team. This repository is maintained as personal portfolio evidence and does not claim sole authorship of all implementation work.
 
-```bash
-python3 -c "
-extradata = '0x...'
-total = len(extradata)
-print(f'Panjang: {total} karakter')
-print(f'Valid: {total == 356}')
-"
-```
+See [TEAM_ATTRIBUTION.md](./TEAM_ATTRIBUTION.md).
 
-✓ Jika output: Valid: True — genesis.json siap didistribusikan
+---
 
-## 5. Inisialisasi Chain (Semua VM)
-
-Setelah VM-1 mendistribusikan genesis.json, SEMUA VM menjalankan langkah ini.
-
-### STEP 5.1    Terima & Simpan genesis.json
-
-```bash
-cp genesis.json ~/blockchain/genesis.json
-```
-
-### STEP 5.2    Init Geth dengan Genesis Block
-
-```bash
-cd ~/blockchain
-
-geth init --datadir ./geth genesis.json
-```
-
-# Output sukses akan muncul:
-
-# INFO Successfully wrote genesis state
-
-# INFO database=chaindata
-
-⛔ KRITIS: Semua VM HARUS menggunakan file genesis.json yang PERSIS SAMA. Satu karakter berbeda = chain berbeda = tidak bisa peering.
-
-## 6. Menjalankan Node
-
-### STEP 6.1    Start VM-1 Terlebih Dahulu (Bootnode)
-
-```bash
-geth \
-  --datadir ~/blockchain/geth \
-  --networkid 20260315 \
-  --port 30303 \
-  --http \
-  --http.addr 0.0.0.0 \
-  --http.port 8545 \
-  --http.api eth,net,web3,clique,personal \
-  --http.corsdomain '*' \
-  --unlock <ADDR_K1> \
-  --password ~/blockchain/password.txt \
-  --mine \
-  --miner.etherbase <ADDR_K1> \
-  --allow-insecure-unlock \
-  console
-```
-
-### STEP 6.2    Ambil enode URL dari VM-1
-
-```bash
-admin.nodeInfo.enode
-```
-
-# Output contoh:
-
-# enode://abc123...@10.34.100.182:30303
-
-Salin enode URL ini dan kirimkan ke VM-2, VM-3, dan VM-4.
-
-### STEP 6.3    Start VM-2, VM-3, VM-4
-
-```bash
-geth \
-  --datadir ~/blockchain/geth \
-  --networkid 20260315 \
-  --port 30303 \
-  --nat extip:<IP_PEER> \
-  --bootnodes "enode://bcd9fa2aeb705101bc15d6ecca3363cf8e555f742203e612f3f02ac1c13749a9925c71116b8a95e03a064affd1a0a61979b38d735d357cc38656bb6f6a0012da@10.34.100.182:30303" \
-  --http \
-  --http.addr 0.0.0.0 \
-  --http.port 8545 \
-  --http.api eth,net,web3,admin,clique,miner,personal \
-  --http.corsdomain "*" \
-  --mine \
-  --miner.etherbase <ADDR_PEER> \
-  --unlock <ADDR_PEER> \
-  --password ~/blockchain/password.txt \
-  --allow-insecure-unlock \
-  --verbosity 3 \
-  console
-```
-
-## 7. Verifikasi Jaringan
-
-Setelah semua node berjalan, lakukan verifikasi berikut di setiap VM:
-
-### STEP 7.1    Cek Jumlah Peer
-
-```bash
-net.peerCount
-```
-
-# Harus menampilkan: 3
-
-# (setiap node terhubung ke 3 node lainnya)
-
-### STEP 7.2    Cek Status Validator
-
-```bash
-clique.getSigners()
-```
-
-# Harus menampilkan 4 address validator
-
-```bash
-eth.blockNumber
-```
-
-# Angka harus terus bertambah (setiap ~5 detik)
-
-### STEP 7.3    Checklist Final
-
-✓ net.peerCount == 3 di semua VM
-✓ clique.getSigners() menampilkan 4 address
-✓ eth.blockNumber terus bertambah
-✓ Tidak ada error di log geth
-
-## 8. Troubleshooting
-
-| Problem                 | Solusi                                                                                                     |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
-| net.peerCount == 0      | Cek firewall port 30303. Pastikan bootnodes enode URL benar. Coba tambah peer manual: admin.addPeer(enode) |
-| Blok tidak bertambah    | Minimal 3 dari 4 validator harus online. Cek apakah --mine aktif dan akun ter-unlock.                      |
-| Error: genesis mismatch | Salah satu VM punya genesis.json berbeda. Hapus chaindata dan init ulang dengan genesis yang benar.        |
-| Error: account locked   | Pastikan file password.txt ada dan berisi password yang benar. Cek path --password.                        |
-| extradata invalid       | Hitung ulang panjang extradata. Harus 356 karakter. Pastikan trailing zeros = 130 hex chars.               |
-
-## Urutan Eksekusi Ringkas
-
-1. Install Geth v1.13.15 di semua VM
-2. Setiap VM: geth account new → kirim address ke VM-1
-3. VM-1: buat genesis.json dengan 4 address → distribusikan
-4. Semua VM: geth init --datadir ./geth genesis.json
-5. VM-1 start geth → ambil enode URL → kirim ke VM-2,3,4
-6. VM-2,3,4 start geth dengan --bootnodes enode VM-1
-7. Verifikasi: net.peerCount == 3, eth.blockNumber bertambah
+**Portfolio owner:** [Syifani Adillah Salsabila](https://github.com/syifaniads)  
+**Project type:** Collaborative Distributed Systems / Private Blockchain coursework  
+**Context:** Universitas Brawijaya - 2026
