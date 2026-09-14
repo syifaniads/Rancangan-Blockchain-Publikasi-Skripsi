@@ -1,0 +1,33 @@
+# Node / Python
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Blockchain node state / secrets
+chaindata/
+geth/
+keystore/
+keystore_backup/
+password.txt
+*.key
+*.pem
+*.p12
+*.pfx
+
+# IPFS / generated data
+.ipfs/
+skripsi_records.json
+output/
+logs/
+*.log
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
