@@ -5,39 +5,76 @@
 [![Storage](https://img.shields.io/badge/storage-IPFS-65C2CB)](./THESIS_PIPELINE.md)
 [![Distributed Systems](https://img.shields.io/badge/focus-distributed%20systems-2563EB)](./PORTFOLIO.md)
 
-A collaborative distributed-systems project that builds a **permissioned Ethereum-compatible network** for registering academic-publication metadata across multiple validator nodes.
+A recruiter-facing case study of a **class-wide collaborative distributed-systems assignment** for registering academic-publication metadata on a permissioned Ethereum-compatible network.
 
-The coursework combines **Geth**, **Clique Proof-of-Authority**, multi-VM peer networking, a shared genesis configuration, backend API integration, repository crawling, **IPFS**, and blockchain transaction verification.
+The **system specification and cross-group responsibility split were provided by the course lecturer** in the upstream case definition:
 
-> **Portfolio note:** this repository is a curated public presentation of an academic team project. Infrastructure addresses, passwords, bootnode identifiers, and other course-lab details are intentionally removed from the recruiter-facing documentation.
+- https://github.com/3k0sakti/SKT/blob/main/case/case-B.md
 
-## Why this project is interesting
+The class then implemented and operated the design across **4 cooperating groups / validator VMs**. This repository preserves the **Group 1 implementation evidence** and documents the resulting end-to-end system without claiming that the original architecture was independently invented by the student team.
 
-The project is more than a basic smart-contract demo. It requires several distributed-systems layers to work together:
+> **Portfolio owner context:** Syifani Adillah Salsabila was the Group 1 PIC / VM-1 contact named in the course specification. Group 1's primary cross-group responsibility was to create and distribute `genesis.json` and coordinate the initial network setup, while all groups also operated a validator, submitted publication data, and participated in consensus.
+
+> **Portfolio note:** infrastructure addresses, passwords, bootnode identifiers, and other course-lab details are intentionally removed from recruiter-facing documentation.
+
+## What was specified vs implemented
+
+### Upstream course specification
+
+The lecturer-provided case defines the overall system, including:
+
+- consortium/private Ethereum network;
+- 4 validator groups;
+- Clique Proof-of-Authority;
+- cross-university thesis/publication sources;
+- smart-contract registry;
+- REST API and plagiarism workflow;
+- IPFS-backed storage;
+- cross-group testing and node-failure scenarios.
+
+### Class / Group 1 implementation evidence
+
+The student work documented in this repository/report includes:
+
+- validator account setup;
+- shared genesis construction and distribution;
+- Clique signer configuration;
+- Geth chain initialization;
+- P2P bootstrap and peer verification;
+- block-production verification;
+- Group 1 publication ingestion from the assigned Undip source;
+- use of the shared backend/API, contract, and IPFS workflow produced across the class collaboration;
+- transaction submission and record verification.
+
+This distinction matters: **the course case supplied the architecture and responsibilities; the students implemented, integrated, operated, tested, and documented it.**
+
+## Why this project is useful portfolio evidence
+
+The engineering work goes beyond running a single smart contract. The class-wide system requires several distributed-systems layers to work together:
 
 - multiple validator/full nodes;
 - deterministic shared genesis state;
 - P2P peer discovery / bootstrapping;
 - authority-based block production;
-- node quorum / signer coordination;
-- off-chain document storage through IPFS;
-- backend ingestion and transaction submission;
+- signer coordination;
+- off-chain content storage through IPFS;
+- backend transaction submission;
 - post-write verification through chain state / API retrieval.
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-    R[University / Academic Repository] --> C[Metadata crawler]
-    C --> API[Backend API]
+    R[University / Academic Repository] --> C[Metadata ingestion]
+    C --> API[Shared Backend / API Layer]
     API --> IPFS[(IPFS\nDocument / JSON object)]
     API --> SC[Registry submission]
 
     subgraph NET[Private Clique PoA Network]
-      V1[Validator A]
-      V2[Validator B]
-      V3[Validator C]
-      V4[Validator D]
+      V1[Group 1 / Validator A]
+      V2[Group 2 / Validator B]
+      V3[Group 3 / Validator C]
+      V4[Group 4 / Validator D]
       V1 --- V2
       V1 --- V3
       V1 --- V4
@@ -47,19 +84,30 @@ flowchart TB
     end
 
     SC --> V1
-    V1 --> Q[Confirmed chain state]
+    V1 --> Q[Replicated chain state]
     Q --> API
     IPFS --> API
     API --> OUT[Verified publication record]
 ```
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md).
+The high-level architecture above follows the lecturer-provided case specification and is supported by the implementation report. See [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+## Group responsibilities defined by the case
+
+| Group | Primary responsibility | Shared responsibility |
+|---|---|---|
+| **K1 / Syifani** | Create + distribute `genesis.json`; coordinate initial setup | Operate validator, submit Undip records, join consensus |
+| K2 | Configure / deploy smart contract | Operate validator, submit IPB records, join consensus |
+| K3 | Build REST API + plagiarism engine | Operate validator, submit UB records, join consensus |
+| K4 | Build OAI-PMH crawler + IPFS storage pipeline | Operate validator, submit Unhas records, join consensus |
+
+The upstream specification explicitly notes that all groups were still expected to understand and operate the complete system on their side.
 
 ## Network design
 
 The documented lab uses **Geth v1.13.15** and Clique PoA with a shared `genesis.json`.
 
-The original configuration defines:
+The retained Group 1 configuration defines:
 
 ```text
 chainId      : 20260315
@@ -78,7 +126,7 @@ See [NETWORK.md](./NETWORK.md).
 
 ## Validation performed
 
-The course report verifies the network using checks such as:
+The implementation report verifies the network using checks such as:
 
 ```text
 peer count          -> expected validator connectivity
@@ -91,40 +139,31 @@ The important engineering point is that **block creation, validator identity, an
 
 ## Academic-publication pipeline
 
-The project extends the network with an application workflow:
+The lecturer specification defines a class-wide application workflow, and the implementation report demonstrates the Group 1 side using the integrated components:
 
 ```mermaid
 flowchart LR
-    SRC[Academic repository] --> CR[Crawler]
+    SRC[Academic repository] --> CR[Metadata ingestion]
     CR --> JSON[Publication metadata]
     JSON --> IPFS[(IPFS CID)]
-    JSON --> API[Backend API]
+    JSON --> API[Shared Backend API]
     IPFS --> API
     API --> TX[Blockchain transaction]
     TX --> CHAIN[(Private chain)]
     CHAIN --> VERIFY[Query / verification]
 ```
 
-The final report records an end-to-end flow that:
+The report records an end-to-end flow that:
 
-1. crawls thesis/publication metadata;
+1. obtains thesis/publication metadata;
 2. produces a structured JSON artifact;
 3. uploads the artifact to IPFS;
-4. submits publication data through the backend API;
+4. submits publication data through the shared backend API;
 5. receives transaction hashes;
 6. verifies that the block height increases;
 7. retrieves the stored record through an API backed by blockchain state.
 
 See [THESIS_PIPELINE.md](./THESIS_PIPELINE.md).
-
-## Why IPFS + blockchain
-
-The project separates two responsibilities:
-
-- **IPFS / object content** - store larger content or content-addressed artifacts off-chain;
-- **blockchain state** - store integrity/reference metadata and an immutable transaction history.
-
-This avoids placing full documents directly into blockchain state while still giving the application a verifiable reference path.
 
 ## Repository navigation
 
@@ -136,7 +175,7 @@ This avoids placing full documents directly into blockchain state while still gi
 | Security considerations | [SECURITY.md](./SECURITY.md) |
 | Limitations / non-claims | [LIMITATIONS.md](./LIMITATIONS.md) |
 | Source / report evidence | [SOURCE_EVIDENCE.md](./SOURCE_EVIDENCE.md) |
-| Team attribution | [TEAM_ATTRIBUTION.md](./TEAM_ATTRIBUTION.md) |
+| Team + class attribution | [TEAM_ATTRIBUTION.md](./TEAM_ATTRIBUTION.md) |
 | Recruiter / CV summary | [PORTFOLIO.md](./PORTFOLIO.md) |
 | Reusable genesis template | [genesis.example.json](./genesis.example.json) |
 
@@ -150,12 +189,18 @@ See [SECURITY.md](./SECURITY.md).
 
 ## Attribution
 
-This project was completed collaboratively by a six-person student team. This repository is maintained as personal portfolio evidence and does not claim sole authorship of all implementation work.
+There are **two collaboration levels** in this project:
 
-See [TEAM_ATTRIBUTION.md](./TEAM_ATTRIBUTION.md).
+1. **Class-wide:** four groups jointly implemented one network from a lecturer-provided case design.
+2. **Group 1:** Syifani and her teammates implemented/operated the Group 1 node and documented their side of the integration.
+
+This portfolio does not claim authorship of the lecturer's assignment design or sole authorship of the components assigned to the other groups.
+
+See [TEAM_ATTRIBUTION.md](./TEAM_ATTRIBUTION.md) and [SOURCE_EVIDENCE.md](./SOURCE_EVIDENCE.md).
 
 ---
 
 **Portfolio owner:** [Syifani Adillah Salsabila](https://github.com/syifaniads)  
+**Role shown by upstream case:** Group 1 PIC / VM-1 coordination  
 **Project type:** Collaborative Distributed Systems / Private Blockchain coursework  
 **Context:** Universitas Brawijaya - 2026
