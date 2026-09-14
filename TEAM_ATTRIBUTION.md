@@ -1,31 +1,61 @@
-# Team Attribution
+# Team and Class Attribution
 
-This project was completed collaboratively by a six-person student team for **Sistem Komputasi Terdistribusi** at Universitas Brawijaya in 2026.
+This project has **two collaboration layers** that should be understood separately.
 
-## Portfolio treatment
+## 1. Class-wide project
 
-This personal repository is maintained by **Syifani Adillah Salsabila** as portfolio evidence. It does not claim that every node setup, backend component, crawler, IPFS step, or blockchain integration artifact was produced individually by the portfolio owner.
+The lecturer-provided assignment specification defines a single blockchain network built collaboratively by **four groups** in Sistem Komputasi Terdistribusi B.
 
-The final report names six team members and documents a shared private-network exercise.
+Upstream specification:
 
-## Portfolio-owner evidence
+https://github.com/3k0sakti/SKT/blob/main/case/case-B.md
 
-The original project repository is already hosted under the portfolio owner's GitHub account:
+The course case assigns one validator VM to each group and distributes component ownership across the class.
 
-https://github.com/syifaniads/Rancangan-Blockchain-Publikasi-Skripsi
+### Responsibility split from the assignment
 
-The report also identifies the Group 1 / VM-1 side as the genesis-owner / initial coordination point for the network setup.
+| Group | Primary responsibility | Shared responsibility |
+|---|---|---|
+| **K1 / Syifani** | Create and distribute `genesis.json`; coordinate initial setup | Run validator, submit Undip publication data, participate in consensus |
+| K2 | Configure and deploy the smart contract | Run validator, submit IPB data, participate in consensus |
+| K3 | Build REST API + plagiarism engine | Run validator, submit UB data, participate in consensus |
+| K4 | Build OAI-PMH crawler + IPFS storage layer | Run validator, submit Unhas data, participate in consensus |
 
-## Why attribution matters
+The lecturer specification explicitly notes that every group should still understand and be able to run the complete integrated system on its own VM.
 
-For recruiter review, the correct interpretation is:
+## 2. Group 1 student team
 
-> Participated in and can explain a collaborative private-blockchain deployment covering genesis construction, validator coordination, peering, IPFS-backed publication ingestion, transaction submission, and verification.
+The Group 1 implementation/report was completed by a six-person student team. **Syifani Adillah Salsabila** is named by the lecturer case as the Group 1 PIC / VM-1 contact.
 
-It should not be interpreted as:
+This personal repository is maintained by Syifani as portfolio evidence for the Group 1 side of the class-wide system.
 
-> Solely authored every component of the six-person team's implementation.
+## Correct portfolio interpretation
 
-## Public privacy choice
+The strongest defensible statement is:
 
-Student identification numbers and other unnecessary personal identifiers from the raw report are intentionally not reproduced in the public portfolio documentation.
+> Served as Group 1 PIC for a class-wide four-validator blockchain assignment, coordinated the shared genesis/bootstrap setup, operated the Group 1 validator, and participated in end-to-end integration/testing of the shared publication-registry workflow.
+
+It is also accurate to discuss and explain the integrated system because all groups had to run and validate the shared network and application workflow.
+
+## What this repository does not claim
+
+It does **not** claim that Syifani or Group 1 independently authored:
+
+- the lecturer's system architecture / assignment design;
+- the smart contract assigned to Group 2;
+- the REST API / plagiarism engine assigned to Group 3;
+- the OAI-PMH + IPFS pipeline assigned to Group 4;
+- every component demonstrated in the class-wide final integration.
+
+## Why this attribution is stronger
+
+For recruiter review, this shows both:
+
+- **individual responsibility:** Group 1 PIC, genesis/bootstrap coordination, validator operation;
+- **collaborative engineering:** cross-group integration, consensus participation, transaction submission, and system verification.
+
+That is more credible than presenting a class-wide architecture as a solo build.
+
+## Privacy choice
+
+Student identification numbers, internal lab addresses, credentials, and other unnecessary personal/operational identifiers are intentionally omitted from the public portfolio documentation.
