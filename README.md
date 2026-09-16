@@ -3,6 +3,7 @@
 [![Blockchain](https://img.shields.io/badge/network-private%20Ethereum-3C3C3D)](./ARCHITECTURE.md)
 [![Consensus](https://img.shields.io/badge/consensus-Clique%20PoA-6A5ACD)](./NETWORK.md)
 [![Storage](https://img.shields.io/badge/storage-IPFS-65C2CB)](./THESIS_PIPELINE.md)
+[![Validation](https://img.shields.io/badge/genesis-validated-2563EB)](./scripts/validate_genesis.py)
 [![Distributed Systems](https://img.shields.io/badge/focus-distributed%20systems-2563EB)](./PORTFOLIO.md)
 
 A recruiter-facing case study of a **class-wide collaborative distributed-systems assignment** for registering academic-publication metadata on a permissioned Ethereum-compatible network.
@@ -124,6 +125,23 @@ The retained [`genesis.json`](./genesis.json) contains public validator addresse
 
 See [NETWORK.md](./NETWORK.md).
 
+## Executable genesis consistency check
+
+Because Group 1's primary responsibility included constructing and distributing the shared genesis, the repository now includes an executable structural validator instead of relying only on prose documentation.
+
+[`scripts/validate_genesis.py`](./scripts/validate_genesis.py) checks the retained artifact for:
+
+- expected `chainId`, Clique period, epoch, difficulty, and gas limit;
+- valid Clique `extraData` framing;
+- exactly four 20-byte signer addresses;
+- duplicate signer detection;
+- signer-set equality with the funded validator allocation; and
+- syntactically valid validator addresses with positive genesis balances.
+
+GitHub Actions runs this check on pushes and pull requests through [`.github/workflows/genesis-validation.yml`](./.github/workflows/genesis-validation.yml).
+
+> This CI validates the **retained configuration artifact**. It does not claim that a live four-node network is currently running or that consensus availability is being tested in CI.
+
 ## Validation performed
 
 The implementation report verifies the network using checks such as:
@@ -172,6 +190,7 @@ See [THESIS_PIPELINE.md](./THESIS_PIPELINE.md).
 | System architecture | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 | Validator network / Clique PoA | [NETWORK.md](./NETWORK.md) |
 | Thesis/publication ingestion pipeline | [THESIS_PIPELINE.md](./THESIS_PIPELINE.md) |
+| Genesis invariant validator | [scripts/validate_genesis.py](./scripts/validate_genesis.py) |
 | Security considerations | [SECURITY.md](./SECURITY.md) |
 | Limitations / non-claims | [LIMITATIONS.md](./LIMITATIONS.md) |
 | Source / report evidence | [SOURCE_EVIDENCE.md](./SOURCE_EVIDENCE.md) |
